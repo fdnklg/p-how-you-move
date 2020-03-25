@@ -1,5 +1,5 @@
-import DefaultModel from "./DefaultModel";
+import DataModel from "./DataModel";
 
 export default {
-  ...DefaultModel
+  ...DataModel
 };

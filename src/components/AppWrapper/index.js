@@ -1,7 +1,18 @@
 /** @jsx jsx */
 import { jsx, Box } from 'theme-ui';
+import {useStoreActions,useStoreState} from 'easy-peasy';
+import {useEffect} from 'react';
+
+import Dropzone from 'components/Dropzone'
 
 export default p => {
+  const setData = useStoreActions((a) => a.setData);
+  const data = useStoreState((s) => s.data);
+
+  useEffect(() => {
+    console.log('data available:', data)
+  }, [data]);
+
   return (
     <Box
       sx={{
@@ -13,7 +24,7 @@ export default p => {
         justifyContent: 'center'
       }}
     >
-    I'm the AppWrapper. Add your Components here!
+      <Dropzone onDragged={setData}/>
     </Box>
   )
 }
