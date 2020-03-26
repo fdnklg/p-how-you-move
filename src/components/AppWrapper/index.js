@@ -7,6 +7,7 @@ import c from 'config';
 
 import Dropzone from 'components/Dropzone'
 import Journeys from 'components/Journeys'
+import Distances from 'components/Distances'
 
 export default p => {
   const {isLocal} = c;
@@ -23,7 +24,7 @@ export default p => {
 
   useEffect(() => {
     if (isLocal) loadData();
-    if (data && !journeysData) setJourneysData(data);
+    // if (data && !journeysData) setJourneysData(data);
     if (data && !distances) setDistancesData(data);
   }, [data]);
 
@@ -42,6 +43,7 @@ export default p => {
     >
       {!isLocal && (<Dropzone onDragged={setData}/>)}
       {journeysData && (<Journeys data={journeysData}/>)}
+      {distances && (<Distances data={distances}/>)}
     </Box>
   )
 }
