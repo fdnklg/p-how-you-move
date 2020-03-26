@@ -1,4 +1,11 @@
 import idx from "idx";
+import { schemePaired, scaleOrdinal, schemeCategory10 } from "d3";
+
+export const id = () => {
+  return Math.random()
+    .toString(36)
+    .substr(2, 9);
+};
 
 const createFeature = pointsArr => {
   const timestamps = pointsArr.map(point => parseInt(point.timestampMs));
@@ -35,8 +42,10 @@ export const createDistances = monthsArr => {
     activityTypes: null
   };
 
-  const byTypeArray = [{id: 'TOTAL', count: 0, distanceM: 0, durationMs: 0}];
-  const activities = [];
+  const color = scaleOrdinal(schemeCategory10);
+
+  let byTypeArray = [{ id: "TOTAL", count: 0, distanceM: 0, durationMs: 0 }];
+  let activities = [];
   const activityTypes = [];
 
   const items = monthsArr.forEach(item => {
@@ -46,7 +55,7 @@ export const createDistances = monthsArr => {
     const activityDistance = idx(item, _ => _.activitySegment.distance);
     const activityDuration = idx(item, _ => _.activitySegment.duration);
 
-    // raw data object structure: 
+    // raw data object structure:
     // startLocation: {latitudeE7: 525037815, longitudeE7: 134108041}
     // endLocation: {latitudeE7: 525154910, longitudeE7: 133367239}
     // duration: {startTimestampMs: "1574518692290", endTimestampMs: "1574520189161"}
@@ -56,14 +65,17 @@ export const createDistances = monthsArr => {
 
     // add each journey to array
     if (activity) {
-      activities.push({
-        activityType: activityType,
-        distance: activityDistance,
-        duration: {
-          startTimestampMs: parseInt(activityDuration.startTimestampMs),
-          endTimestampMs: parseInt(activityDuration.endTimestampMs),
-        },
-      });
+      if (activityDistance) {
+        activities.push({
+          id: id(),
+          activityType: activityType,
+          distance: activityDistance,
+          duration: {
+            startTimestampMs: parseInt(activityDuration.startTimestampMs),
+            endTimestampMs: parseInt(activityDuration.endTimestampMs)
+          }
+        });
+      }
     }
 
     // count all activities by type
@@ -71,12 +83,14 @@ export const createDistances = monthsArr => {
       const match = byTypeArray.find(a => a.id === activityType);
       const total = byTypeArray[0];
 
-      total.distanceM += typeof activityDistance === "number" ? activityDistance : 0;
-      total.durationMs += (activityDuration.endTimestampMs - activityDuration.startTimestampMs)
+      total.distanceM +=
+        typeof activityDistance === "number" ? activityDistance : 0;
+      total.durationMs +=
+        activityDuration.endTimestampMs - activityDuration.startTimestampMs;
       total.count += 1;
 
       if (!match) {
-        activityTypes.push(activityType)
+        activityTypes.push(activityType);
         byTypeArray.push({
           id: activityType,
           count: 1,
@@ -91,10 +105,22 @@ export const createDistances = monthsArr => {
       }
     }
   });
-    obj.activities = activities;
-    obj.activityTypes = activityTypes;
-    obj.summary = byTypeArray;
-    return obj;
+
+  // add colorcodes
+  byTypeArray = byTypeArray.map((obj, i) => ({
+    ...obj,
+    color: color(i)
+  }));
+
+  activities = activities.map(activity => ({
+    ...activity,
+    color: byTypeArray.find(d => d.id === activity.activityType).color
+  }));
+
+  obj.activities = activities;
+  obj.activityTypes = activityTypes;
+  obj.summary = byTypeArray;
+  return obj;
 };
 
 export const createGeoJsonFromArray = monthsArr => {

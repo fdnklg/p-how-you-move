@@ -8,6 +8,7 @@ import c from 'config';
 import Dropzone from 'components/Dropzone'
 import Journeys from 'components/Journeys'
 import Distances from 'components/Distances'
+import Legend from 'components/Legend'
 
 export default p => {
   const {isLocal} = c;
@@ -44,6 +45,7 @@ export default p => {
       {!isLocal && (<Dropzone onDragged={setData}/>)}
       {journeysData && (<Journeys data={journeysData}/>)}
       {distances && (<Distances data={distances}/>)}
+      {distances && (<Legend data={distances.summary}/>)}
     </Box>
   )
 }

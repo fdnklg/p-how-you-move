@@ -32,14 +32,19 @@ export default p => {
     init();
   }, [])
 
+  const minWidth = val => {
+    return val < 1 ? 2 : val;
+  }
+
+  // https://stackoverflow.com/questions/40105387/drawing-a-specific-number-of-rects-d3-js
   // Build displayed data below
-  const initData = (data) => {
+  const initData = (data, width) => {
     var posX = 0;
     var posY = 0;
 
     // Calculate position of each node
     for (var i in data) {
-      var node = addNode(scale(data[i].distance), posX, posY);
+      var node = addNode(scale(data[i].distance),data[i] , posX, posY);
 
       // If there is an overflow
       if (node.x + node.value > width) {
@@ -51,9 +56,9 @@ export default p => {
           node.value = width - node.x;
           // Calculate new node posX and posY
           posX = 0;
-          posY += 10 + 1;
-          node = addNode(overflowValue, posX, posY);
+          posY += 10 + 3;
           // Claculate new overflow
+          node = addNode(overflowValue, data[i], posX, posY);
           overflowValue = node.x + node.value - width;
         }
       }
@@ -63,9 +68,10 @@ export default p => {
     return nodes;
   }
 
-  const addNode = (value, x, y) => {
+  const addNode = (value, obj, x, y) => {
     var newNode = {
-      value: value,
+      ...obj,
+      value: minWidth(value),
       x: x,
       y: y
     };
@@ -85,19 +91,18 @@ export default p => {
 
     scale = d3ScaleLinear()
       .domain([0, 15000000]).nice()
-      .range([0, 70000])
+      .range([0, 10000])
 
 
     distances = svg.append('g')
-      .attr("fill", "black")
       .selectAll('rect')
-      .data(initData(activities))
+      .data(initData(activities, width))
       .join('rect')
-        // .attr('id', d => d.duration.startTimestampMs)
         .attr('x', (d,i) => d.x)
+        .attr("fill", d => d.color)
         .attr('width', d => d.value)
         .attr('y', (d,i) => d.y)
-        .attr('height', d => 1)
+        .attr('height', d => 3)
   }
 
   return (
