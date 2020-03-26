@@ -24,9 +24,10 @@ export default p => {
   const setDistancesData = useStoreActions(a => a.setDistancesData);
 
   useEffect(() => {
-    if (isLocal) loadData();
+    if (isLocal && !data) loadData();
     // if (data && !journeysData) setJourneysData(data);
     if (data && !distances) setDistancesData(data);
+    console.log('distances', distances)
   }, [data]);
 
   return (
@@ -39,7 +40,7 @@ export default p => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'white'
+        backgroundColor: 'black'
       }}
     >
       {!isLocal && (<Dropzone onDragged={setData}/>)}

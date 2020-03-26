@@ -1,17 +1,22 @@
 /** @jsx jsx */
 import { jsx, Box } from 'theme-ui';
-import {useStoreActions} from 'easy-peasy';
-import React, {useEffect} from 'react';
+import {useStoreState} from 'easy-peasy';
+import React, {useEffect, useState} from 'react';
+
+import ButtonGroup from './ButtonGroup';
 
 import {
   select as d3Select,
   scaleLinear as d3ScaleLinear,
-  path as d3Path
+  path as d3Path,
+  transition as d3Transition,
+  easeCubicInOut
 } from 'd3';
 
 export default p => {
   const { data } = p;
   const { activities } = data;
+  const highlighted = useStoreState(s => s.highlighted)
 
   let width = null;
   let height = null;
@@ -19,8 +24,13 @@ export default p => {
   let scaleDistance = null;
   let scaleDuration = null;
   let distances = null;
+  let [dist, setDist] = useState(null)
   let longer = false;
+  let select = 'WALKING'
   let nodes = [];
+  let transition = d3Transition()
+    .duration(1000)
+    .ease(easeCubicInOut);
 
   const margin = {
     top: '10px',
@@ -32,6 +42,10 @@ export default p => {
   useEffect(() => {
     init();
   }, [])
+
+  useEffect(() => {
+    if (dist) update(dist);
+  }, [highlighted])
 
   const minWidth = val => {
     return val < 1 ? 2 : val;
@@ -93,21 +107,44 @@ export default p => {
     scaleDistance = d3ScaleLinear()
       .domain([0, 15000000]).nice()
       .range([0, 10000])
-    
+
     scaleDuration = d3ScaleLinear()
       .domain([0, 15000000]).nice()
       .range([0, 10000])
-    
+
     distances = svg.append('g')
+
+    distances
       .selectAll('rect')
       .data(initData(activities, width))
       .join('rect')
         .attr('x', (d,i) => d.x)
         .attr("fill", d => d.color)
-        .attr('width', d => d.value)
-        .attr('opacity', '1')
+        .attr('width', d => 0)
+        .attr('opacity', '0')
         .attr('y', (d,i) => d.y)
-        .attr('height', d => 6)
+        .attr('height', d => 3)
+    
+    setDist(distances)
+
+    update(distances);
+  }
+
+  const update = (node) => {
+    node.selectAll('rect')
+      .transition(transition)
+      .delay((d, i) => { return i * .5; })
+      .attr('width', d => minWidth(d.value))
+      .attr('opacity', d => {
+        if (highlighted === 'TOTAL') {
+          return 1
+        }
+        if (d.activityType === highlighted) {
+          return 1
+        } else {
+          return .1
+        }
+      })
   }
 
   return (
@@ -116,9 +153,10 @@ export default p => {
       sx={{
         width: ['90%', '75%', '50%'],
         height: '100%',
-        my: ['5'],
-        backgroundColor: 'white'
+        mt: ['5'],
       }}
-    ></Box>
+    >
+      <ButtonGroup/>
+    </Box>
   )
 }
