@@ -1,5 +1,5 @@
 import {thunk,action} from "easy-peasy";
-import {createGeoJson} from 'utils';
+import {createGeoJson, createGeoJsonFromArray} from 'utils';
 
 const JourneysModel = {
   journeysData: false,
@@ -9,7 +9,8 @@ const JourneysModel = {
   setJourneysData: thunk(async (state, payload, { getState, getStoreState }) => {
     let data = getState().data;
     // create jourey geojson here
-    const geojson = createGeoJson(data[3]);
+    const geojson = createGeoJsonFromArray(data);
+    console.log(geojson)
     state.setJourneysSuccess(geojson);
   })
 };

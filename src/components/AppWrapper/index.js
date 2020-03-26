@@ -10,16 +10,22 @@ import Journeys from 'components/Journeys'
 
 export default p => {
   const {isLocal} = c;
+
+  const data = useStoreState((s) => s.data);
   const setData = useStoreActions((a) => a.setData);
   const loadData = useStoreActions((a) => a.loadData);
-  const setJourneysData = useStoreActions(a => a.setJourneysData);
-  const data = useStoreState((s) => s.data);
+
   const journeysData = useStoreState((s) => s.journeysData);
+  const setJourneysData = useStoreActions(a => a.setJourneysData);
+  
+  const distances = useStoreState((s) => s.distances);
+  const setDistancesData = useStoreActions(a => a.setDistancesData);
 
   useEffect(() => {
     if (isLocal) loadData();
     if (data && !journeysData) setJourneysData(data);
-  });
+    if (data && !distances) setDistancesData(data);
+  }, [data]);
 
   return (
     <Box
@@ -28,8 +34,10 @@ export default p => {
         height: ['100vh'],
         width: ['100vw'],
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        backgroundColor: 'white'
       }}
     >
       {!isLocal && (<Dropzone onDragged={setData}/>)}
