@@ -4,16 +4,25 @@ import React from "react";
 
 export default p => {
   const { data } = p;
+  const filtered = data.filter(d => d.id != 'TOTAL')
   return (
     <Box
       sx={{
-        flexDirection: "column"
+        display: 'flex',
+        flexDirection: "row"
       }}
     >
-      {data.map(item => (
+      {filtered.map(item => (
         <>
           <div
-            sx={{ width: "fit-content", height: "auto", p: '1', fontSize: '0', color: 'white', backgroundColor: item.color }}
+            sx={{
+              width: "fit-content",
+              height: "auto",
+              p: "1",
+              fontSize: "0",
+              color: "white",
+              backgroundColor: item.color
+            }}
           >
             {item.id}
           </div>

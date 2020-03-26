@@ -16,7 +16,8 @@ export default p => {
   let width = null;
   let height = null;
   let svg = null;
-  let scale = null;
+  let scaleDistance = null;
+  let scaleDuration = null;
   let distances = null;
   let longer = false;
   let nodes = [];
@@ -44,7 +45,7 @@ export default p => {
 
     // Calculate position of each node
     for (var i in data) {
-      var node = addNode(scale(data[i].distance),data[i] , posX, posY);
+      var node = addNode(scaleDistance(data[i].distance),data[i] , posX, posY);
 
       // If there is an overflow
       if (node.x + node.value > width) {
@@ -89,11 +90,14 @@ export default p => {
       .attr("width", width) // add margin here later
       .attr("height",  height) // add margin here later
 
-    scale = d3ScaleLinear()
+    scaleDistance = d3ScaleLinear()
       .domain([0, 15000000]).nice()
       .range([0, 10000])
-
-
+    
+    scaleDuration = d3ScaleLinear()
+      .domain([0, 15000000]).nice()
+      .range([0, 10000])
+    
     distances = svg.append('g')
       .selectAll('rect')
       .data(initData(activities, width))
@@ -101,8 +105,9 @@ export default p => {
         .attr('x', (d,i) => d.x)
         .attr("fill", d => d.color)
         .attr('width', d => d.value)
+        .attr('opacity', '1')
         .attr('y', (d,i) => d.y)
-        .attr('height', d => 3)
+        .attr('height', d => 6)
   }
 
   return (

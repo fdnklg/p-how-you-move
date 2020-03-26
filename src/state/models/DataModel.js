@@ -15,7 +15,7 @@ const DataModel = {
       // how to loop over async function with
       // await with map: https://zellwk.com/blog/async-await-in-loops/
       const promises = months.map(async month => {
-        const url = `/data/2019/2019_${month}.json`;
+        const url = `/data/2018/2018_${month}.json`;
         const response = await fetch(url);
         const data = await response.json();
         return data.timelineObjects

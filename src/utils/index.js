@@ -1,5 +1,10 @@
 import idx from "idx";
-import { schemePaired, scaleOrdinal, schemeCategory10 } from "d3";
+import {
+  schemePaired,
+  scaleOrdinal,
+  schemeCategory10,
+  schemeTableau10
+} from "d3";
 
 export const id = () => {
   return Math.random()
@@ -42,7 +47,7 @@ export const createDistances = monthsArr => {
     activityTypes: null
   };
 
-  const color = scaleOrdinal(schemeCategory10);
+  const color = scaleOrdinal(schemeTableau10);
 
   let byTypeArray = [{ id: "TOTAL", count: 0, distanceM: 0, durationMs: 0 }];
   let activities = [];
@@ -79,7 +84,7 @@ export const createDistances = monthsArr => {
     }
 
     // count all activities by type
-    if (activityType) {
+    if (activityType && activityType != "UNKNOWN_ACTIVITY_TYPE") {
       const match = byTypeArray.find(a => a.id === activityType);
       const total = byTypeArray[0];
 
@@ -107,6 +112,15 @@ export const createDistances = monthsArr => {
   });
 
   // add colorcodes
+  byTypeArray = byTypeArray.sort(function(a, b) {
+    if (a.id < b.id) {
+      return -1;
+    }
+    if (a.id > b.id) {
+      return 1;
+    }
+    return 0;
+  });
   byTypeArray = byTypeArray.map((obj, i) => ({
     ...obj,
     color: color(i)
