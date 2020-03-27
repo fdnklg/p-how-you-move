@@ -56,7 +56,7 @@ export const createDistances = monthsArr => {
   const items = monthsArr.forEach(item => {
     // activity
     const activity = idx(item, _ => _.activitySegment);
-    const activityType = idx(item, _ => _.activitySegment.activityType);
+    const activityType = idx(item, _ => _.activitySegment.activities[0].activityType);
     const activityDistance = idx(item, _ => _.activitySegment.distance);
     const activityDuration = idx(item, _ => _.activitySegment.duration);
 
@@ -87,6 +87,7 @@ export const createDistances = monthsArr => {
     if (activityType && activityType != "UNKNOWN_ACTIVITY_TYPE") {
       const match = byTypeArray.find(a => a.id === activityType);
       const total = byTypeArray[0];
+
 
       total.distanceM +=
         typeof activityDistance === "number" ? activityDistance : 0;
@@ -128,7 +129,7 @@ export const createDistances = monthsArr => {
 
   activities = activities.map(activity => ({
     ...activity,
-    color: byTypeArray.find(d => d.id === activity.activityType).color
+    color: byTypeArray.find(d => d.id === activity.activityType) ? byTypeArray.find(d => d.id === activity.activityType).color : '#ffffff'
   }));
 
   obj.activities = activities;
