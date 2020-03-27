@@ -9,7 +9,7 @@
 # production
 /build
 
-/public/fonts/*
+# /public/fonts/*
 
 # misc
 .DS_Store
