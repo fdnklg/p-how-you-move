@@ -3,7 +3,7 @@ import {
   schemePaired,
   scaleOrdinal,
   schemeCategory10,
-  schemeTableau10
+  schemeTableau10,
 } from "d3";
 
 export const id = () => {
@@ -55,6 +55,7 @@ export const createDistances = monthsArr => {
 
   const items = monthsArr.forEach(item => {
     // activity
+    const place = idx(item, _ => _.placeVisit)
     const activity = idx(item, _ => _.activitySegment);
     const activityType = idx(item, _ => _.activitySegment.activities[0].activityType);
     const activityDistance = idx(item, _ => _.activitySegment.distance);
@@ -68,48 +69,50 @@ export const createDistances = monthsArr => {
     // activityType: "IN_TRAIN"
     // confidence: "MEDIUM"
 
-    // add each journey to array
-    if (activity) {
-      if (activityDistance) {
-        activities.push({
-          id: id(),
-          activityType: activityType,
-          distance: activityDistance,
-          duration: {
-            startTimestampMs: parseInt(activityDuration.startTimestampMs),
-            endTimestampMs: parseInt(activityDuration.endTimestampMs)
-          }
-        });
-      }
+
+    let currentItem = place ? place : activity;
+
+    // create data object here – can be activity or visit!
+    const obj = {
+      id: id(),
+      activityType: place ? 'VISIT' : currentItem.activities[0].activityType,
+      location: place ? currentItem.location.address : null,
+      distance: (place) ? 0 : (currentItem.distance) ? currentItem.distance : 0,
+      duration: parseInt(currentItem.duration.endTimestampMs) - parseInt(currentItem.duration.startTimestampMs),
+      startTimestampMs: parseInt(currentItem.duration.startTimestampMs),
+      endTimestampMs: parseInt(currentItem.duration.endTimestampMs)
     }
 
+    if (obj) activities.push(obj)
+
     // count all activities by type
-    if (activityType && activityType != "UNKNOWN_ACTIVITY_TYPE") {
-      const match = byTypeArray.find(a => a.id === activityType);
+    if (obj.activityType != "UNKNOWN_ACTIVITY_TYPE" && obj.activityType !== "VISIT") {
+      const match = byTypeArray.find(a => a.id === obj.activityType);
       const total = byTypeArray[0];
 
-
       total.distanceM +=
-        typeof activityDistance === "number" ? activityDistance : 0;
+        typeof obj.distance === "number" ? obj.distance : 0;
       total.durationMs +=
-        activityDuration.endTimestampMs - activityDuration.startTimestampMs;
+        (obj.endTimestampMs - obj.startTimestampMs);
       total.count += 1;
 
       if (!match) {
-        activityTypes.push(activityType);
+        activityTypes.push(obj.activityType);
         byTypeArray.push({
-          id: activityType,
+          id: obj.activityType,
           count: 1,
-          distanceM: activityDistance,
+          distanceM: obj.distance,
           durationMs:
-            activityDuration.endTimestampMs - activityDuration.startTimestampMs
+            (obj.endTimestampMs - obj.startTimestampMs)
         });
       } else {
         match.distanceM +=
-          typeof activityDistance === "number" ? activityDistance : 0;
+          typeof obj.distance === "number" ? obj.distance : 0;
         match.count += 1;
+        match.durationMs += (obj.endTimestampMs - obj.startTimestampMs);
       }
     }
+
   });
 
   // add colorcodes
@@ -122,6 +125,7 @@ export const createDistances = monthsArr => {
     }
     return 0;
   });
+  
   byTypeArray = byTypeArray.map((obj, i) => ({
     ...obj,
     color: color(i)

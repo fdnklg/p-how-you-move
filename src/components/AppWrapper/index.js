@@ -8,6 +8,7 @@ import c from 'config';
 import Dropzone from 'components/Dropzone'
 import Journeys from 'components/Journeys'
 import Distances from 'components/Distances'
+import SlopeChart from 'components/SlopeChart'
 import Legend from 'components/Legend'
 
 export default p => {
@@ -19,7 +20,7 @@ export default p => {
 
   const journeysData = useStoreState((s) => s.journeysData);
   const setJourneysData = useStoreActions(a => a.setJourneysData);
-  
+
   const distances = useStoreState((s) => s.distances);
   const setDistancesData = useStoreActions(a => a.setDistancesData);
 
@@ -46,13 +47,14 @@ export default p => {
         overflow: 'auto',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'black'
+        backgroundColor: 'white'
       }}
     >
       {!isLocal && (<Dropzone onDragged={setData}/>)}
       {journeysData && (<Journeys data={journeysData}/>)}
-      {distances && (<Distances data={distances}/>)}
-      {distances && (<Legend data={distances.summary}/>)}
+      {false && (<Distances data={distances}/>)}
+      {distances && (<SlopeChart data={distances.summary}/>)}
+      {false && (<Legend data={distances.summary}/>)}
     </Box>
   )
 }
