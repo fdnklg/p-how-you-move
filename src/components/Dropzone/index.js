@@ -1,3 +1,5 @@
+/** @jsx jsx */
+import { jsx, Box } from 'theme-ui';
 import React, {useCallback,useState,useEffect} from 'react'
 import {useDropzone} from 'react-dropzone'
 
@@ -9,7 +11,7 @@ const Dropzone = p => {
 
   useEffect(() => {
     if (filesLength === data.length) setAllFilesLoaded(true);
-    if (allFilesLoaded) onDragged(data);
+    if (allFilesLoaded) onDragged(data)
   }, [data, allFilesLoaded])
 
   const onDrop = useCallback((acceptedFiles) => {
@@ -40,7 +42,7 @@ const Dropzone = p => {
   return (
     <div {...getRootProps()}>
       <input {...getInputProps()} />
-      <p>Drag 'n' drop some files here, or click to select files</p>
+      <p sx={{color: 'white'}}>Drag 'n' drop some files here, or click to select files</p>
     </div>
   )
 }

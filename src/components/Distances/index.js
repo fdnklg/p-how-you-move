@@ -29,7 +29,7 @@ export default p => {
   let select = 'WALKING'
   let nodes = [];
   let transition = d3Transition()
-    .duration(1000)
+    .duration(750)
     .ease(easeCubicInOut);
 
   const margin = {
@@ -151,8 +151,8 @@ export default p => {
     <Box
       id="distances"
       sx={{
-        width: ['90%', '75%', '50%'],
-        height: '100%',
+        width: ['90%', '75%', '75%'],
+        height: '80%',
         mt: ['5'],
       }}
     >

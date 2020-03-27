@@ -3,6 +3,8 @@ import { thunk, action } from "easy-peasy";
 const DataModel = {
   data: false,
   setData: action((state, payload) => {
+    state.data = false;
+    state.distances = false;
     state.data = payload;
   }),
   type: "distance",

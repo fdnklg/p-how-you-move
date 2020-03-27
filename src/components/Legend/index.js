@@ -19,8 +19,9 @@ export default p => {
               width: "fit-content",
               height: "auto",
               p: "1",
+              mx: '2',
               fontSize: "0",
-              color: "white",
+              color: "black",
               backgroundColor: item.color
             }}
           >

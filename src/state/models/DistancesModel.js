@@ -3,7 +3,7 @@ import {createDistances} from 'utils';
 
 const DistancesModel = {
   distances: false,
-  highlighted: 'CYCLING',
+  highlighted: 'TOTAL',
   setHighlighted: action((state, payload) => {
     state.highlighted = payload;
   }),

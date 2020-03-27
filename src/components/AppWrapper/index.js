@@ -23,8 +23,13 @@ export default p => {
   const distances = useStoreState((s) => s.distances);
   const setDistancesData = useStoreActions(a => a.setDistancesData);
 
+  const setHighlighted = useStoreActions(a => a.setHighlighted);
+
   useEffect(() => {
-    if (isLocal && !data) loadData();
+    if (isLocal && !data) {
+      setHighlighted('TOTAL');
+      loadData();
+    }
     // if (data && !journeysData) setJourneysData(data);
     if (data && !distances) setDistancesData(data);
     console.log('distances', distances)
@@ -38,6 +43,7 @@ export default p => {
         width: ['100vw'],
         display: 'flex',
         flexDirection: 'column',
+        overflow: 'auto',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'black'
