@@ -1,11 +1,18 @@
 /** @jsx jsx */
 import { jsx, Box } from "theme-ui";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-import { select, scaleLinear, axisLeft, axisRight, scaleLog, path } from "d3";
+import { select, scaleLinear, axisLeft, axisRight, scaleLog, path, easeCubicInOut, transition as d3Transition } from "d3";
+
+import SlopeButtonGroup from './SlopeButtonGroup';
 
 export default p => {
   const { data } = p;
+  const [compareType, setCompareType] = useState('time');
+  const [slopeLine, setSlopeline] = useState(null);
+  const [dotsRight, setDotsRight] = useState(null);
+  const [labelRight, setLabelRight] = useState(null);
+  const [scalePercent, setScalePercent] = useState(null);
   let svg = null;
   let width = null;
   let height = null;
@@ -13,15 +20,16 @@ export default p => {
   let widthtMinusMargin = null;
   let axisTime = null;
   let axisDistance = null;
+  let transition = d3Transition()
+    .duration(750)
+    .ease(easeCubicInOut);
 
   let lineTime = null;
   let lineDistance = null;
   let dotsLeft = null;
-  let dotsRight = null;
-  let slopeLine = null;
 
   const total = data.find(d => d.id === "TOTAL");
-  const filteredData = data.filter(d => ((d.id !== "TOTAL")));
+  const filteredData = data.filter(d => ((d.id !== "TOTAL") && (d.id !== 'FLYING')));
 
   let totalDistance = 0;
   let totalTime = 0;
@@ -59,8 +67,19 @@ export default p => {
 
   // console.log(maxDistance, maxTime)
 
+  const calcYPos = (d, type, scale) => {
+    if (type=='time') {
+      return scale(d.durationMs / timeOnePercent)
+    }
+    if (type=='distance') {
+      return scale(d.distanceM / distanceOnePercent)
+    }
+    if (type=='count') {
+      return scale(d.count / countOnePercent)
+    }
+  }
+
   let scaleDistance = null;
-  let scaleTime = null;
 
   const margin = {
     top: 50,
@@ -72,6 +91,10 @@ export default p => {
   useEffect(() => {
     init(data);
   }, []);
+
+  useEffect(() => {
+    update();
+  }, [compareType]);
 
   const init = data => {
     const wrapper = select("#slope");
@@ -86,16 +109,15 @@ export default p => {
       .attr("width", width) // add margin here later
       .attr("height", height); // add margin here later
 
-    scaleDistance = scaleLinear()
+    const sc = scaleLinear()
       .domain([maxPercent, 0])
       .range([0, heightMinusMargin]);
 
-    scaleTime = scaleLinear()
-      .domain([maxPercent, 0])
-      .range([0, heightMinusMargin]);
+    setScalePercent(() => sc)
+    scaleDistance = sc;
 
-    axisTime = axisLeft(scaleTime);
-    axisDistance = axisRight(scaleDistance);
+    axisTime = axisLeft(sc);
+    axisDistance = axisRight(sc);
 
     lineTime = svg
       .append("g")
@@ -114,48 +136,109 @@ export default p => {
       .data(filteredData)
       .join("circle")
       .attr("cx", 0)
-      .attr("cy", d => scaleTime(d.count / countOnePercent))
+      .attr("cy", d => sc(d.count / countOnePercent))
       .attr("r", 3)
       .attr("id", d => d.id)
       .attr("fill", d => d.color);
 
-    dotsRight = svg
+    const labelLeft = svg
+      .append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`)
+      .selectAll("text")
+      .data(filteredData)
+      .join('text')
+      .attr('x', 0)
+      .attr("y", d => sc(d.count / countOnePercent))
+      .text(d => d.id)
+      .attr('text-anchor', 'end')
+
+    const lr = svg
       .append("g")
       .attr("transform", `translate(${width - margin.right}, ${margin.top})`)
+
+    lr
+      .selectAll("text")
+      .data(filteredData)
+      .join('text')
+      .attr('x', 0)
+      .attr("y", d => calcYPos(d, compareType, sc))
+      .text(d => d.id)
+
+    setLabelRight(lr)
+
+    const dr = svg
+      .append("g")
+      .attr("transform", `translate(${width - margin.right}, ${margin.top})`)
+
+    dr
       .selectAll("circle")
       .data(filteredData)
       .join("circle")
       .attr("cx", 0)
-      .attr("cy", d => scaleDistance(d.durationMs / timeOnePercent))
+      .attr("cy", d => calcYPos(d, compareType, sc))
       .attr("r", 3)
       .attr("id", d => d.id)
       .attr("fill", d => d.color);
 
-    slopeLine = svg
+    setDotsRight(dr)
+
+    let sl = svg
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`)
+
+    sl
       .selectAll("line")
       .data(filteredData)
       .join("line")
       .attr("x1", 0)
-      .attr("y1", d => scaleTime(d.count / countOnePercent))
+      .attr("y1", d => sc(d.count / countOnePercent))
       .attr("x2", widthtMinusMargin)
-      .attr("y2", d => scaleDistance(d.durationMs / timeOnePercent))
+      .attr("y2", d => calcYPos(d, compareType, sc))
       .attr("stroke", d => d.color);
+
+    setSlopeline(sl);
   };
 
-  const updata = () => {
+  const update = () => {
+    if (slopeLine) {
+      slopeLine
+        .selectAll("line")
+        .transition(transition)
+        .delay((d, i) => {
+          return i * 0.5;
+        })
+        .attr("y2", d => calcYPos(d, compareType, scalePercent))
 
+      dotsRight
+        .selectAll("circle")
+        .transition(transition)
+        .delay((d, i) => {
+          return i * 0.5;
+        })
+        .attr("cy", d => calcYPos(d, compareType, scalePercent))
+
+      labelRight
+        .selectAll("text")
+        .transition(transition)
+        .delay((d, i) => {
+          return i * 0.5;
+        })
+        .attr("y", d => calcYPos(d, compareType, scalePercent))
+    }
   }
 
   return (
-    <Box
-      id="slope"
-      sx={{
-        width: ["500px"],
-        height: "600px",
-        mt: ["5"]
-      }}
-    ></Box>
+    <>
+      <Box
+        id="slope"
+        sx={{
+          width: ["500px"],
+          height: "800px",
+          mt: ["5"],
+          fontSize: '0'
+        }}
+      ></Box>
+      <SlopeButtonGroup selectToggle={setCompareType} data={compareType}/>
+    </>
   );
 };
