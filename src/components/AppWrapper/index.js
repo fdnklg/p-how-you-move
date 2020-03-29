@@ -54,7 +54,7 @@ export default p => {
       {journeysData && (<Journeys data={journeysData}/>)}
       {false && (<Distances data={distances}/>)}
       {distances && (<SlopeChart data={distances.summary}/>)}
-      {false && (<Legend data={distances.summary}/>)}
+      {distances && (<Legend data={distances.summary}/>)}
     </Box>
   )
 }

@@ -3,7 +3,7 @@ import {
   schemePaired,
   scaleOrdinal,
   schemeCategory10,
-  schemeTableau10,
+  schemeTableau10
 } from "d3";
 
 export const id = () => {
@@ -30,6 +30,23 @@ const createFeature = pointsArr => {
   };
 };
 
+export const activityDict = activityType => {
+  const obj = {
+    'CYCLING': 'Bike',
+    'IN_BUS': 'Bus',
+    'IN_SUBWAY': 'Subway',
+    'IN_TRAIN': 'Train',
+    'IN_TRAM': 'Tram',
+    'RUNNING': 'Running',
+    'WALKING': 'Walking',
+    'FLYING': 'Flying',
+    'IN_PASSENGER_VEHICLE': 'Car',
+    'MOTORCYCLING': 'Motorcycle',
+    'SKIING': 'Skiing',
+  }
+  return obj[activityType];
+}
+
 export const convertValue = (value, type) => {
   switch (type) {
     case type === "meters":
@@ -55,45 +72,42 @@ export const createDistances = monthsArr => {
 
   const items = monthsArr.forEach(item => {
     // activity
-    const place = idx(item, _ => _.placeVisit)
+    const place = idx(item, _ => _.placeVisit);
     const activity = idx(item, _ => _.activitySegment);
-    const activityType = idx(item, _ => _.activitySegment.activities[0].activityType);
+    const activityType = idx(
+      item,
+      _ => _.activitySegment.activities[0].activityType
+    );
     const activityDistance = idx(item, _ => _.activitySegment.distance);
     const activityDuration = idx(item, _ => _.activitySegment.duration);
-
-    // raw data object structure:
-    // startLocation: {latitudeE7: 525037815, longitudeE7: 134108041}
-    // endLocation: {latitudeE7: 525154910, longitudeE7: 133367239}
-    // duration: {startTimestampMs: "1574518692290", endTimestampMs: "1574520189161"}
-    // distance: 6600
-    // activityType: "IN_TRAIN"
-    // confidence: "MEDIUM"
-
 
     let currentItem = place ? place : activity;
 
     // create data object here – can be activity or visit!
     const obj = {
       id: id(),
-      activityType: place ? 'VISIT' : currentItem.activities[0].activityType,
+      activityType: place ? "VISIT" : currentItem.activities[0].activityType,
       location: place ? currentItem.location.address : null,
-      distance: (place) ? 0 : (currentItem.distance) ? currentItem.distance : 0,
-      duration: parseInt(currentItem.duration.endTimestampMs) - parseInt(currentItem.duration.startTimestampMs),
+      distance: place ? 0 : currentItem.distance ? currentItem.distance : 0,
+      duration:
+        parseInt(currentItem.duration.endTimestampMs) -
+        parseInt(currentItem.duration.startTimestampMs),
       startTimestampMs: parseInt(currentItem.duration.startTimestampMs),
       endTimestampMs: parseInt(currentItem.duration.endTimestampMs)
-    }
+    };
 
-    if (obj) activities.push(obj)
+    if (obj) activities.push(obj);
 
     // count all activities by type
-    if (obj.activityType != "UNKNOWN_ACTIVITY_TYPE" && obj.activityType !== "VISIT") {
+    if (
+      obj.activityType != "UNKNOWN_ACTIVITY_TYPE" &&
+      obj.activityType !== "VISIT"
+    ) {
       const match = byTypeArray.find(a => a.id === obj.activityType);
       const total = byTypeArray[0];
 
-      total.distanceM +=
-        typeof obj.distance === "number" ? obj.distance : 0;
-      total.durationMs +=
-        (obj.endTimestampMs - obj.startTimestampMs);
+      total.distanceM += typeof obj.distance === "number" ? obj.distance : 0;
+      total.durationMs += obj.endTimestampMs - obj.startTimestampMs;
       total.count += 1;
 
       if (!match) {
@@ -102,18 +116,27 @@ export const createDistances = monthsArr => {
           id: obj.activityType,
           count: 1,
           distanceM: obj.distance,
-          durationMs:
-            (obj.endTimestampMs - obj.startTimestampMs)
+          durationMs: obj.endTimestampMs - obj.startTimestampMs
         });
       } else {
-        match.distanceM +=
-          typeof obj.distance === "number" ? obj.distance : 0;
+        match.distanceM += typeof obj.distance === "number" ? obj.distance : 0;
         match.count += 1;
-        match.durationMs += (obj.endTimestampMs - obj.startTimestampMs);
+        match.durationMs += obj.endTimestampMs - obj.startTimestampMs;
       }
     }
-
   });
+
+  const total = byTypeArray.find(d => d.id === 'TOTAL');
+
+  byTypeArray.forEach(obj => {
+    if (obj.id !== 'TOTAL') {
+      obj.countPercent = Number((obj.count / (total.count / 100)).toFixed(1));
+      obj.distancePercent = Number((obj.distanceM / (total.distanceM / 100)).toFixed(1));
+      obj.durationPercent = Number((obj.durationMs / (total.durationMs / 100)).toFixed(1));
+      obj.durationHrs = Number(obj.durationMs * 2.77778e-7).toFixed(1);
+    }
+  })
+
 
   // add colorcodes
   byTypeArray = byTypeArray.sort(function(a, b) {
@@ -125,15 +148,18 @@ export const createDistances = monthsArr => {
     }
     return 0;
   });
-  
+
   byTypeArray = byTypeArray.map((obj, i) => ({
     ...obj,
     color: color(i)
   }));
 
+  console.log(byTypeArray)
   activities = activities.map(activity => ({
     ...activity,
-    color: byTypeArray.find(d => d.id === activity.activityType) ? byTypeArray.find(d => d.id === activity.activityType).color : '#ffffff'
+    color: byTypeArray.find(d => d.id === activity.activityType)
+      ? byTypeArray.find(d => d.id === activity.activityType).color
+      : "#ffffff"
   }));
 
   obj.activities = activities;
@@ -168,5 +194,6 @@ export const createGeoJson = month => {
 export default {
   createGeoJson,
   createGeoJsonFromArray,
-  createDistances
+  createDistances,
+  activityDict
 };

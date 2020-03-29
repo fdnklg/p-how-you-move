@@ -29,7 +29,7 @@ export default p => {
   let dotsLeft = null;
 
   const total = data.find(d => d.id === "TOTAL");
-  const filteredData = data.filter(d => ((d.id !== "TOTAL") && (d.id !== 'FLYING')));
+  const filteredData = data.filter(d => ((d.id !== "TOTAL")));
 
   let totalDistance = 0;
   let totalTime = 0;
@@ -136,7 +136,7 @@ export default p => {
       .data(filteredData)
       .join("circle")
       .attr("cx", 0)
-      .attr("cy", d => sc(d.count / countOnePercent))
+      .attr("cy", d => sc(d.durationMs / timeOnePercent))
       .attr("r", 3)
       .attr("id", d => d.id)
       .attr("fill", d => d.color);
@@ -148,7 +148,7 @@ export default p => {
       .data(filteredData)
       .join('text')
       .attr('x', 0)
-      .attr("y", d => sc(d.count / countOnePercent))
+      .attr("y", d => sc(d.durationMs / timeOnePercent))
       .text(d => d.id)
       .attr('text-anchor', 'end')
 
@@ -191,7 +191,7 @@ export default p => {
       .data(filteredData)
       .join("line")
       .attr("x1", 0)
-      .attr("y1", d => sc(d.count / countOnePercent))
+      .attr("y1", d => sc(d.durationMs / timeOnePercent))
       .attr("x2", widthtMinusMargin)
       .attr("y2", d => calcYPos(d, compareType, sc))
       .attr("stroke", d => d.color);
@@ -233,7 +233,7 @@ export default p => {
         id="slope"
         sx={{
           width: ["500px"],
-          height: "800px",
+          height: "500px",
           mt: ["5"],
           fontSize: '0'
         }}
